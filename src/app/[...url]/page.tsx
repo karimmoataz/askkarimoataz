@@ -4,10 +4,11 @@ import { redis } from '@/lib/redis';
 import { cookies } from 'next/headers';
 import React from 'react';
 
+// Adjusting PageProps for Next.js dynamic routing
 interface PageProps {
-  params: {
-    url: string[]; // This ensures `url` is always an array of strings.
-  };
+  params: Promise<{
+    url: string[]; // Ensure params.url is an array of strings
+  }>;
 }
 
 // Function to reconstruct the URL from `url` array
@@ -16,11 +17,15 @@ function reconstructedUrl({ url }: { url: string[] }) {
   return decodedComponents.join('/');
 }
 
-const page = async ({ params }: PageProps) => {
+// Handling the page component as an async function
+const Page = async ({ params }: PageProps) => {
+  // Await the promise for params
+  const resolvedParams = await params;
+  const { url } = resolvedParams;
   const sessionCookie = (await cookies()).get('sessionId')?.value;
 
   // Ensure that `params.url` is a string[] and pass it to the reconstructedUrl function
-  const reconstructedUrlValue = reconstructedUrl({ url: params.url });
+  const reconstructedUrlValue = reconstructedUrl({ url });
 
   const sessionId = `${reconstructedUrlValue}--${sessionCookie}`.replace(/\//g, '');
 
@@ -42,4 +47,4 @@ const page = async ({ params }: PageProps) => {
   return <ChatWrapper sessionId={sessionId} initialMessages={initialMessages} />;
 };
 
-export default page;
+export default Page;
