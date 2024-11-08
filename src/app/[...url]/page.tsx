@@ -4,11 +4,10 @@ import { redis } from "@/lib/redis";
 import { cookies } from "next/headers";
 
 interface PageProps {
-  params: {
+  params: Promise<{
     url: string | string[] | undefined;
-  };
+  }>;
 }
-
 function reconstructUrl({ url }: { url: string[] }) {
   const decodedComponents = url.map((component) => decodeURIComponent(component));
 
@@ -17,7 +16,8 @@ function reconstructUrl({ url }: { url: string[] }) {
 
 const Page = async ({ params }: PageProps) => {
   const sessionCookie = (await cookies()).get("sessionId")?.value;
-  const reconstructedUrl = reconstructUrl({ url: params.url as string[] });
+  
+  const reconstructedUrl = reconstructUrl({ url: (await params).url as string[] });
 
   const sessionId = (reconstructedUrl + "--" + sessionCookie).replace(/\//g, "");
 
